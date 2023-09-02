@@ -139,7 +139,7 @@ class Picker : AppCompatActivity() {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun initViews(){
+    private fun initViews() {
 
         mBinding.imageViewChangeCamera.let {
 
@@ -204,6 +204,7 @@ class Picker : AppCompatActivity() {
                     camera?.cameraControl?.enableTorch(true)
                     flashMode = ImageCapture.FLASH_MODE_ON
                 }
+
                 ImageCapture.FLASH_MODE_ON -> {
                     mBinding.imageViewFlash.setImageDrawable(
                         ResourcesCompat.getDrawable(
@@ -232,8 +233,8 @@ class Picker : AppCompatActivity() {
         val rotation = mBinding.viewFinder.display.rotation
 
         // CameraProvider
-        val cameraProvider = cameraProvider
-            ?: throw IllegalStateException("Camera initialization failed.")
+        val cameraProvider =
+            cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
 
         // CameraSelector
         val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
@@ -243,19 +244,17 @@ class Picker : AppCompatActivity() {
             // We request aspect ratio but no resolution
             .setTargetAspectRatio(screenAspectRatio)
             // Set initial target rotation
-            .setTargetRotation(rotation)
-            .build()
+            .setTargetRotation(rotation).build()
 
         // ImageCapture
-        imageCapture = ImageCapture.Builder()
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-            // We request aspect ratio but no resolution to match preview config, but letting
-            // CameraX optimize for whatever specific resolution best fits our use cases
-            .setTargetAspectRatio(screenAspectRatio)
-            // Set initial target rotation, we will have to call this again if rotation changes
-            // during the lifecycle of this use case
-            .setTargetRotation(rotation)
-            .build()
+        imageCapture =
+            ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                // We request aspect ratio but no resolution to match preview config, but letting
+                // CameraX optimize for whatever specific resolution best fits our use cases
+                .setTargetAspectRatio(screenAspectRatio)
+                // Set initial target rotation, we will have to call this again if rotation changes
+                // during the lifecycle of this use case
+                .setTargetRotation(rotation).build()
 
         videoCapture = VideoCapture.Builder().build()
 
@@ -286,8 +285,7 @@ class Picker : AppCompatActivity() {
 
             // Create output file to hold the image
             val photoFile = File(
-                outputDirectory,
-                SimpleDateFormat(
+                outputDirectory, SimpleDateFormat(
                     FILENAME_FORMAT, Locale.ENGLISH
                 ).format(System.currentTimeMillis()) + PHOTO_EXTENSION
             )
@@ -300,13 +298,13 @@ class Picker : AppCompatActivity() {
             }
 
             // Create output options object which contains file + metadata
-            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile)
-                .setMetadata(metadata)
-                .build()
+            val outputOptions =
+                ImageCapture.OutputFileOptions.Builder(photoFile).setMetadata(metadata).build()
 
             // Setup image capture listener which is triggered after photo has been taken
-            imageCapture.takePicture(
-                outputOptions, cameraExecutor, object : ImageCapture.OnImageSavedCallback {
+            imageCapture.takePicture(outputOptions,
+                cameraExecutor,
+                object : ImageCapture.OnImageSavedCallback {
                     override fun onError(exc: ImageCaptureException) {
                         Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
                     }
@@ -321,9 +319,7 @@ class Picker : AppCompatActivity() {
                         val mimeType = MimeTypeMap.getSingleton()
                             .getMimeTypeFromExtension(savedUri.toFile().extension)
                         MediaScannerConnection.scanFile(
-                            this@Picker,
-                            arrayOf(savedUri.toFile().absolutePath),
-                            arrayOf(mimeType)
+                            this@Picker, arrayOf(savedUri.toFile().absolutePath), arrayOf(mimeType)
                         ) { _, uri ->
                             Log.d(TAG, "Image capture scanned into media store: $uri")
                         }
@@ -360,14 +356,14 @@ class Picker : AppCompatActivity() {
         mBinding.imageViewClick.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 mBinding.imageViewVideoRedBg.visibility = GONE
-                mBinding.imageViewVideoRedBg.animate().scaleX(1f).scaleY(1f)
-                    .setDuration(300).setInterpolator(AccelerateDecelerateInterpolator()).start()
+                mBinding.imageViewVideoRedBg.animate().scaleX(1f).scaleY(1f).setDuration(300)
+                    .setInterpolator(AccelerateDecelerateInterpolator()).start()
                 mBinding.imageViewClick.animate().scaleX(1f).scaleY(1f).setDuration(300)
                     .setInterpolator(AccelerateDecelerateInterpolator()).start()
             } else if (event.action == MotionEvent.ACTION_DOWN) {
                 mBinding.imageViewVideoRedBg.visibility = VISIBLE
-                mBinding.imageViewVideoRedBg.animate().scaleX(1.2f).scaleY(1.2f)
-                    .setDuration(300).setInterpolator(AccelerateDecelerateInterpolator()).start()
+                mBinding.imageViewVideoRedBg.animate().scaleX(1.2f).scaleY(1.2f).setDuration(300)
+                    .setInterpolator(AccelerateDecelerateInterpolator()).start()
                 mBinding.imageViewClick.animate().scaleX(1.2f).scaleY(1.2f).setDuration(300)
                     .setInterpolator(AccelerateDecelerateInterpolator()).start()
             }
@@ -381,9 +377,9 @@ class Picker : AppCompatActivity() {
 
         mBinding.imageViewClick.setOnLongClickListener {
             if (!mPickerOptions.excludeVideos) {
-                try{
+                try {
                     takeVideo(it)
-                }catch (e : Exception) {
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
@@ -399,8 +395,7 @@ class Picker : AppCompatActivity() {
     private fun takeVideo(it: View) {
 
         val videoFile = File(
-            outputDirectory,
-            SimpleDateFormat(
+            outputDirectory, SimpleDateFormat(
                 FILENAME_FORMAT, Locale.ENGLISH
             ).format(System.currentTimeMillis()) + VIDEO_EXTENSION
         )
@@ -455,14 +450,14 @@ class Picker : AppCompatActivity() {
         mBinding.textViewMessageBottom.visibility = GONE
 
         //start video
-        videoCapture?.startRecording(
-            mOutputFileOptions,
+        videoCapture?.startRecording(mOutputFileOptions,
             cameraExecutor,
             object : VideoCapture.OnVideoSavedCallback {
                 override fun onVideoSaved(output: VideoCapture.OutputFileResults) {
                     val savedUri = output.savedUri ?: Uri.fromFile(videoFile)
-                    if (mVideoCounterHandler != null)
-                        mVideoCounterHandler?.removeCallbacks(mVideoCounterRunnable)
+                    if (mVideoCounterHandler != null) mVideoCounterHandler?.removeCallbacks(
+                        mVideoCounterRunnable
+                    )
 
                     Log.d(TAG, "Video capture succeeded: $savedUri")
 
@@ -472,9 +467,7 @@ class Picker : AppCompatActivity() {
                     val mimeType = MimeTypeMap.getSingleton()
                         .getMimeTypeFromExtension(savedUri.toFile().extension)
                     MediaScannerConnection.scanFile(
-                        this@Picker,
-                        arrayOf(savedUri.toFile().absolutePath),
-                        arrayOf(mimeType)
+                        this@Picker, arrayOf(savedUri.toFile().absolutePath), arrayOf(mimeType)
                     ) { _, uri ->
                         Log.d(TAG, "Image capture scanned into media store: $uri")
                     }
@@ -491,9 +484,7 @@ class Picker : AppCompatActivity() {
                 }
 
                 override fun onError(
-                    videoCaptureError: Int,
-                    message: String,
-                    cause: Throwable?
+                    videoCaptureError: Int, message: String, cause: Throwable?
                 ) {
                     //
                 }
@@ -563,8 +554,7 @@ class Picker : AppCompatActivity() {
                 for (i in 0 until selectedList.size) {
                     mInstantMediaAdapter?.imageCount = mInstantMediaAdapter?.imageCount!! + 1
                     mMediaClickListener.onMediaLongClick(
-                        selectedList[i],
-                        InstantMediaRecyclerAdapter::class.java.simpleName
+                        selectedList[i], InstantMediaRecyclerAdapter::class.java.simpleName
                     )
                 }
 
@@ -616,19 +606,16 @@ class Picker : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mBinding.constraintBottomSheetTop.setBackgroundColor(
                 resources.getColor(
-                    R.color.colorPrimary,
-                    null
+                    R.color.colorPrimary, null
                 )
             )
             DrawableCompat.setTint(
-                mBinding.imageViewBack.drawable,
-                resources.getColor(R.color.colorWhite, null)
+                mBinding.imageViewBack.drawable, resources.getColor(R.color.colorWhite, null)
             )
         } else {
             mBinding.constraintBottomSheetTop.setBackgroundColor(resources.getColor(R.color.colorPrimary))
             DrawableCompat.setTint(
-                mBinding.imageViewBack.drawable,
-                resources.getColor(R.color.colorWhite)
+                mBinding.imageViewBack.drawable, resources.getColor(R.color.colorWhite)
             )
         }
     }
@@ -640,19 +627,16 @@ class Picker : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mBinding.constraintBottomSheetTop.setBackgroundColor(
                 resources.getColor(
-                    R.color.colorWhite,
-                    null
+                    R.color.colorWhite, null
                 )
             )
             DrawableCompat.setTint(
-                mBinding.imageViewBack.drawable,
-                resources.getColor(R.color.colorBlack, null)
+                mBinding.imageViewBack.drawable, resources.getColor(R.color.colorBlack, null)
             )
         } else {
             mBinding.constraintBottomSheetTop.setBackgroundColor(resources.getColor(R.color.colorWhite))
             DrawableCompat.setTint(
-                mBinding.imageViewBack.drawable,
-                resources.getColor(R.color.colorBlack)
+                mBinding.imageViewBack.drawable, resources.getColor(R.color.colorBlack)
             )
         }
     }
@@ -679,8 +663,7 @@ class Picker : AppCompatActivity() {
         mBinding.recyclerViewBottomSheetMedia.adapter = mBottomMediaAdapter
         mBinding.recyclerViewBottomSheetMedia.addItemDecoration(
             HeaderItemDecoration(
-                mBottomMediaAdapter!!,
-                this
+                mBottomMediaAdapter!!, this
             )
         )
 
@@ -768,19 +751,16 @@ class Picker : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 mBinding.constraintBottomSheetTop.setBackgroundColor(
                     resources.getColor(
-                        R.color.colorPrimary,
-                        null
+                        R.color.colorPrimary, null
                     )
                 )
                 DrawableCompat.setTint(
-                    mBinding.imageViewBack.drawable,
-                    resources.getColor(R.color.colorWhite, null)
+                    mBinding.imageViewBack.drawable, resources.getColor(R.color.colorWhite, null)
                 )
             } else {
                 mBinding.constraintBottomSheetTop.setBackgroundColor(resources.getColor(R.color.colorPrimary))
                 DrawableCompat.setTint(
-                    mBinding.imageViewBack.drawable,
-                    resources.getColor(R.color.colorWhite)
+                    mBinding.imageViewBack.drawable, resources.getColor(R.color.colorWhite)
                 )
             }
         }
@@ -810,13 +790,15 @@ class Picker : AppCompatActivity() {
 
     override fun onBackPressed() {
         when {
-            bottomSheetBehavior?.state == BottomSheetBehavior.STATE_EXPANDED -> bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
+            bottomSheetBehavior?.state == BottomSheetBehavior.STATE_EXPANDED -> bottomSheetBehavior?.state =
+                BottomSheetBehavior.STATE_COLLAPSED
+
             mInstantMediaAdapter?.imageCount != null && mInstantMediaAdapter?.imageCount!! > 0 -> removeSelection()
             else -> super.onBackPressed()
         }
     }
 
-    private fun removeSelection(){
+    private fun removeSelection() {
         mInstantMediaAdapter?.imageCount = 0
         mBottomMediaAdapter?.imageCount = 0
         for (i in 0 until galleryImageList.size) galleryImageList[i].isSelected = false
@@ -828,19 +810,16 @@ class Picker : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mBinding.constraintBottomSheetTop.setBackgroundColor(
                 resources.getColor(
-                    R.color.colorWhite,
-                    null
+                    R.color.colorWhite, null
                 )
             )
             DrawableCompat.setTint(
-                mBinding.imageViewBack.drawable,
-                resources.getColor(R.color.colorBlack, null)
+                mBinding.imageViewBack.drawable, resources.getColor(R.color.colorBlack, null)
             )
         } else {
             mBinding.constraintBottomSheetTop.setBackgroundColor(resources.getColor(R.color.colorWhite))
             DrawableCompat.setTint(
-                mBinding.imageViewBack.drawable,
-                resources.getColor(R.color.colorBlack)
+                mBinding.imageViewBack.drawable, resources.getColor(R.color.colorBlack)
             )
         }
     }
@@ -855,8 +834,7 @@ class Picker : AppCompatActivity() {
         val mediaDir = externalMediaDirs.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
         }
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else filesDir
+        return if (mediaDir != null && mediaDir.exists()) mediaDir else filesDir
     }
 
     /**
@@ -904,26 +882,22 @@ class Picker : AppCompatActivity() {
 
         @JvmStatic
         fun startPicker(fragment: Fragment, mPickerOptions: PickerOptions) {
-            PermissionUtils.checkForCameraWritePermissions(fragment, object : PermissionCallback {
-                override fun onPermission(approved: Boolean) {
-                    val mPickerIntent = Intent(fragment.activity, Picker::class.java)
-                    mPickerIntent.putExtra(PICKER_OPTIONS, mPickerOptions)
-                    mPickerIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-                    fragment.startActivityForResult(mPickerIntent, REQUEST_CODE_PICKER)
-                }
-            })
+
+
+            val mPickerIntent = Intent(fragment.activity, Picker::class.java)
+            mPickerIntent.putExtra(PICKER_OPTIONS, mPickerOptions)
+            mPickerIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            fragment.startActivityForResult(mPickerIntent, REQUEST_CODE_PICKER)
+
+
         }
 
         @JvmStatic
         fun startPicker(activity: FragmentActivity, mPickerOptions: PickerOptions) {
-            PermissionUtils.checkForCameraWritePermissions(activity, object : PermissionCallback {
-                override fun onPermission(approved: Boolean) {
-                    val mPickerIntent = Intent(activity, Picker::class.java)
-                    mPickerIntent.putExtra(PICKER_OPTIONS, mPickerOptions)
-                    mPickerIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-                    activity.startActivityForResult(mPickerIntent, REQUEST_CODE_PICKER)
-                }
-            })
+            val mPickerIntent = Intent(activity, Picker::class.java)
+            mPickerIntent.putExtra(PICKER_OPTIONS, mPickerOptions)
+            mPickerIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            activity.startActivityForResult(mPickerIntent, REQUEST_CODE_PICKER)
         }
     }
 }
